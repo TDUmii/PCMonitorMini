@@ -1,5 +1,5 @@
 """
-ui_pages.py - Triển khai đầy đủ 8 màn hình của PC Monitor 2.0.
+ui_pages.py - Triển khai đầy đủ 8 màn hình của PC Monitor 2.1.
 1. Tổng quan (Overview)
 2. Đang chạy (Processes)
 3. Khởi động (Startup)
@@ -21,12 +21,14 @@ import customtkinter as ctk
 
 from system_service import format_bytes, format_duration
 from charts import ResourceChartsFrame
+
 from ui_widgets import (
     COLOR_ACCENT,
     COLOR_ACCENT_BUTTON,
     COLOR_ACCENT_BG,
     COLOR_ACCENT_HOVER,
     COLOR_BORDER,
+    COLOR_BUTTON_TEXT,
     COLOR_DANGER,
     COLOR_DANGER_BUTTON,
     COLOR_DANGER_BG,
@@ -109,7 +111,7 @@ class OverviewPage(ctk.CTkFrame):
             text="Hoạt động: --",
             font=FONT_SMALL,
             text_color=COLOR_TEXT_MUTED,
-            fg_color=("#F1F5F9", "#1A273D"),
+            fg_color=("#F1F1F3", "#202023"),
             corner_radius=8,
             padx=8,
             pady=2,
@@ -121,7 +123,7 @@ class OverviewPage(ctk.CTkFrame):
             text="-- tiến trình",
             font=FONT_SMALL,
             text_color=COLOR_TEXT_MUTED,
-            fg_color=("#F1F5F9", "#1A273D"),
+            fg_color=("#F1F1F3", "#202023"),
             corner_radius=8,
             padx=8,
             pady=2,
@@ -190,8 +192,8 @@ class OverviewPage(ctk.CTkFrame):
             height=32,
             corner_radius=8,
             font=FONT_SMALL_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_task_mgr.pack(side="left", padx=(0, 8))
@@ -206,7 +208,7 @@ class OverviewPage(ctk.CTkFrame):
             font=FONT_SMALL_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_export.pack(side="left")
 
@@ -403,8 +405,8 @@ class ProcessesPage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_refresh.pack(side="left", padx=(0, 8))
@@ -603,8 +605,8 @@ class StartupPage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_sys_startup.pack(side="left", padx=(0, 8))
@@ -619,7 +621,7 @@ class StartupPage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_refresh.pack(side="left")
 
@@ -682,7 +684,7 @@ class StartupPage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
             state="disabled",
         )
         self.btn_toggle.pack(side="right", padx=(12, 0))
@@ -823,8 +825,8 @@ class AppsPage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_windows_apps.pack(side="left", padx=(0, 8))
@@ -839,7 +841,7 @@ class AppsPage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_refresh.pack(side="left")
 
@@ -900,8 +902,8 @@ class AppsPage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_uninstall.pack(side="right", padx=(12, 0))
@@ -1000,8 +1002,8 @@ class StoragePage(ctk.CTkFrame):
             height=32,
             corner_radius=8,
             font=FONT_SMALL_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_storage_settings.pack(side="left", padx=(0, 8))
@@ -1016,7 +1018,7 @@ class StoragePage(ctk.CTkFrame):
             font=FONT_SMALL_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_refresh_drives.pack(side="left")
 
@@ -1073,8 +1075,8 @@ class StoragePage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_browse.pack(side="left", padx=(0, 8))
@@ -1089,7 +1091,7 @@ class StoragePage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_start_scan.pack(side="left", padx=(0, 8))
 
@@ -1158,8 +1160,8 @@ class StoragePage(ctk.CTkFrame):
             height=32,
             corner_radius=8,
             font=FONT_SMALL_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
             state="disabled",
         )
@@ -1188,8 +1190,8 @@ class StoragePage(ctk.CTkFrame):
             height=32,
             corner_radius=8,
             font=FONT_SMALL_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
             state="disabled",
         )
@@ -1241,7 +1243,7 @@ class StoragePage(ctk.CTkFrame):
 
                 ctk.CTkLabel(top, text=f"{pct_str} đã dùng", font=FONT_BODY_BOLD, text_color=COLOR_ACCENT).pack(side="right")
 
-                prog = ctk.CTkProgressBar(row, height=6, corner_radius=3, fg_color=("#E2E8F0", "#1E2B40"), progress_color=COLOR_ACCENT)
+                prog = ctk.CTkProgressBar(row, height=6, corner_radius=3, fg_color=("#E4E4E7", "#27272B"), progress_color=COLOR_ACCENT)
                 prog.set(max(0.0, min(1.0, pct / 100.0)))
                 prog.pack(fill="x", padx=12, pady=(2, 6))
 
@@ -1408,8 +1410,8 @@ class NetworkPage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_sys_net.pack(side="left", padx=(0, 8))
@@ -1424,7 +1426,7 @@ class NetworkPage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_refresh.pack(side="left")
 
@@ -1643,7 +1645,7 @@ class OptimizePage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_scan_temp.pack(side="left", padx=(0, 8))
 
@@ -1753,7 +1755,7 @@ class OptimizePage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         ).pack(side="left", padx=(0, 8))
 
         ctk.CTkButton(
@@ -1764,8 +1766,8 @@ class OptimizePage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         ).pack(side="left")
 
@@ -1808,6 +1810,13 @@ class OptimizePage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY,
+            fg_color=COLOR_SURFACE_ALT,
+            button_color=COLOR_ACCENT_BG,
+            button_hover_color=("#D4D4D8", "#36363B"),
+            text_color=COLOR_TEXT_MAIN,
+            dropdown_fg_color=COLOR_SURFACE,
+            dropdown_hover_color=COLOR_ACCENT_BG,
+            dropdown_text_color=COLOR_TEXT_MAIN,
         )
         self.power_menu.pack(side="left", padx=(0, 10))
 
@@ -1821,7 +1830,7 @@ class OptimizePage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_apply_power.pack(side="left", padx=(0, 8))
 
@@ -1833,8 +1842,8 @@ class OptimizePage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
             state="disabled",
         )
@@ -1848,8 +1857,8 @@ class OptimizePage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_power_tool.pack(side="left")
@@ -1896,7 +1905,7 @@ class OptimizePage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_flush_dns.pack(side="right", padx=(12, 0))
 
@@ -2141,8 +2150,8 @@ class HistoryPage(ctk.CTkFrame):
             height=36,
             corner_radius=10,
             font=FONT_BODY_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
-            hover_color=("#CBD5E1", "#2D3F5C"),
+            fg_color=("#E4E4E7", "#27272B"),
+            hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.btn_export.pack(side="left", padx=(0, 8))
@@ -2157,7 +2166,7 @@ class HistoryPage(ctk.CTkFrame):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_refresh.pack(side="left")
 

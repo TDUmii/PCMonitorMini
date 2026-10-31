@@ -11,7 +11,7 @@ from pathlib import Path
 
 import psutil
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 GIB = 1024**3
 
 

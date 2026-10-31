@@ -1,5 +1,5 @@
 """
-app.py - Điểm khởi chạy và Lớp ứng dụng chính cho PC Monitor 2.0.
+app.py - Điểm khởi chạy và Lớp ứng dụng chính cho PC Monitor 2.1.
 Triển khai giao diện hiện đại kiểu Windows 11, hỗ trợ 8 màn hình hoàn chỉnh,
 hàng đợi đa luồng không giật lag (Worker Queue), chuyển đổi Sáng / Tối,
 và kết nối trực tiếp với backend SystemService.
@@ -15,6 +15,7 @@ import customtkinter as ctk
 
 from system_service import SystemService, format_bytes, format_duration
 from monitor import VERSION, MetricHistory, load_theme, save_theme
+from motion import Animator, blend, system_motion_enabled
 from ui_widgets import (
     COLOR_ACCENT,
     COLOR_ACCENT_BUTTON,
@@ -22,6 +23,7 @@ from ui_widgets import (
     COLOR_ACCENT_HOVER,
     COLOR_BG,
     COLOR_BORDER,
+    COLOR_BUTTON_TEXT,
     COLOR_DANGER,
     COLOR_DANGER_BG,
     COLOR_SURFACE,
@@ -54,7 +56,7 @@ PROCESS_POLL_MS = 2500
 
 
 class MonitorApp(ctk.CTk):
-    """Cửa sổ chính của PC Monitor 2.0 quản lý thanh điều hướng và luồng dữ liệu."""
+    """Cửa sổ chính của PC Monitor 2.1 quản lý thanh điều hướng và luồng dữ liệu."""
 
     PAGES_INFO = [
         ("overview", "Tổng quan", "Theo dõi hiệu năng và sức khỏe tổng thể hệ thống"),
@@ -69,7 +71,7 @@ class MonitorApp(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        self.title("PC Monitor 2.0")
+        self.title(f"PC Monitor {VERSION}")
         self.geometry("1200x800")
         self.minsize(1020, 700)
 
@@ -89,6 +91,16 @@ class MonitorApp(ctk.CTk):
 
         # 2. Khởi tạo Backend Service trực tiếp (không tạo stub/fallback giả)
         self.service = SystemService()
+        self._system_motion = system_motion_enabled()
+        try:
+            preferences = self.service.store.read("appearance.json", {})
+        except (OSError, ValueError):
+            preferences = {}
+        requested_motion = preferences.get("motion", True) if isinstance(preferences, dict) else True
+        self.motion_enabled = requested_motion is not False and self._system_motion
+        self.motion = Animator(self, enabled=self.motion_enabled)
+        self._nav_backgrounds = {}
+        self._page_motion_id = None
 
         # 3. Quản lý trạng thái và hàng đợi đa luồng
         self.history = MetricHistory()
@@ -120,6 +132,7 @@ class MonitorApp(ctk.CTk):
             page.apply_theme(self.theme)
         self._install_keyboard_access()
         self._style_theme_segment()
+        self._apply_component_motion()
 
         # Phím tắt chuyển giao diện Ctrl+T
         self.bind("<Control-t>", lambda _e: self.toggle_theme())
@@ -157,11 +170,11 @@ class MonitorApp(ctk.CTk):
         app_brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         app_brand.pack(fill="x", padx=16, pady=(18, 16))
 
-        logo_badge = ctk.CTkFrame(app_brand, width=38, height=38, corner_radius=10, fg_color=COLOR_ACCENT)
+        logo_badge = ctk.CTkFrame(app_brand, width=38, height=38, corner_radius=10, fg_color=COLOR_ACCENT_BUTTON)
         logo_badge.pack(side="left", padx=(0, 10))
         logo_badge.pack_propagate(False)
 
-        ctk.CTkLabel(logo_badge, text="PC", font=(FONT_FAMILY, 13, "bold"), text_color="#FFFFFF").pack(expand=True)
+        ctk.CTkLabel(logo_badge, text="PC", font=(FONT_FAMILY, 13, "bold"), text_color=COLOR_BUTTON_TEXT).pack(expand=True)
 
         brand_text = ctk.CTkFrame(app_brand, fg_color="transparent")
         brand_text.pack(side="left")
@@ -190,15 +203,24 @@ class MonitorApp(ctk.CTk):
             height=34,
             corner_radius=8,
             font=FONT_SMALL_BOLD,
-            fg_color=("#E2E8F0", "#1E2B40"),
+            fg_color=("#E4E4E7", "#27272B"),
             selected_color=COLOR_ACCENT_BUTTON,
             selected_hover_color=COLOR_ACCENT_HOVER,
-            unselected_color=("#E2E8F0", "#1E2B40"),
-            unselected_hover_color=("#CBD5E1", "#2D3F5C"),
+            unselected_color=("#E4E4E7", "#27272B"),
+            unselected_hover_color=("#D4D4D8", "#36363B"),
             text_color=COLOR_TEXT_MAIN,
         )
         self.theme_segment.set("Sáng" if self.theme == "Light" else "Tối")
         self.theme_segment.pack(fill="x", pady=(0, 6))
+        self.motion_switch = ctk.CTkSwitch(
+            sidebar_footer, text="Hiệu ứng", font=FONT_SMALL,
+            variable=ctk.BooleanVar(value=self.motion_enabled), command=self._on_motion_switch,
+            progress_color=COLOR_ACCENT_BUTTON, button_color=("#FAFAFA", "#171719"),
+            fg_color=("#D4D4D8", "#343438"), text_color=COLOR_TEXT_MUTED,
+        )
+        self.motion_switch.pack(pady=(6, 5))
+        if not self._system_motion:
+            self.motion_switch.configure(state="disabled", text="Hiệu ứng (Windows tắt)")
 
         ctk.CTkLabel(
             sidebar_footer,
@@ -284,7 +306,7 @@ class MonitorApp(ctk.CTk):
             font=FONT_BODY_BOLD,
             fg_color=COLOR_ACCENT_BUTTON,
             hover_color=COLOR_ACCENT_HOVER,
-            text_color="#FFFFFF",
+            text_color=COLOR_BUTTON_TEXT,
         )
         self.btn_context_refresh.pack(side="left")
 
@@ -297,6 +319,7 @@ class MonitorApp(ctk.CTk):
         # 2. Khung chứa 8 trang
         self.page_container = ctk.CTkFrame(self.content_area, fg_color="transparent")
         self.page_container.pack(fill="both", expand=True)
+        self.page_container.pack_propagate(False)
 
         self.pages["overview"] = OverviewPage(self.page_container, app=self)
         self.pages["processes"] = ProcessesPage(self.page_container, app=self)
@@ -336,23 +359,84 @@ class MonitorApp(ctk.CTk):
         if page_key not in self.pages:
             return
 
+        previous = self.current_page_key
+        self.motion.cancel("page")
+        self.motion.cancel("title")
+        if self._page_motion_id:
+            self.after_cancel(self._page_motion_id)
+            self._page_motion_id = None
+        if previous != page_key:
+            self._stop_component_motion(self.pages.get(previous))
         self.current_page_key = page_key
-
-        for k, page in self.pages.items():
-            if k == page_key:
-                page.pack(fill="both", expand=True)
-            else:
+        for key, page in self.pages.items():
+            if key != page_key:
+                page.place_forget()
                 page.pack_forget()
+        page = self.pages[page_key]
+        page.place(x=0, y=0, relwidth=1, relheight=1)
 
         for k, title, sub in self.PAGES_INFO:
             if k == page_key:
-                self.lbl_page_title.configure(text=title)
+                if self.motion_enabled:
+                    self.motion.animate("title", lambda progress, text=title: self.lbl_page_title.configure(
+                        text=text[:max(1, round(len(text) * progress))]), duration=0.23)
+                else:
+                    self.lbl_page_title.configure(text=title)
                 self.lbl_page_sub.configure(text=sub)
                 break
 
         self._update_sidebar_styles()
         self._render_page_error()
         self._on_page_activated(page_key)
+        self.motion.animate("page", lambda progress: page.place_configure(
+            x=round(16 * (1 - progress)), y=round(6 * (1 - progress))), duration=0.22)
+        self._page_motion_id = self.after_idle(lambda: self._animate_page_components(page_key))
+
+    @staticmethod
+    def _descendants(parent):
+        if parent is None:
+            return
+        for widget in parent.winfo_children():
+            yield widget
+            yield from MonitorApp._descendants(widget)
+
+    def _stop_component_motion(self, page):
+        for widget in self._descendants(page):
+            for value in tuple(vars(widget).values()):
+                if isinstance(value, Animator):
+                    value.set_enabled(value.enabled)
+
+    def _animate_page_components(self, page_key):
+        self._page_motion_id = None
+        if self._is_closing or page_key != self.current_page_key:
+            return
+        for widget in self._descendants(self.pages[page_key]):
+            enter = getattr(widget, "animate_in", None)
+            if callable(enter):
+                enter()
+
+    def _apply_component_motion(self):
+        for widget in self._descendants(self):
+            setter = getattr(widget, "set_motion_enabled", None)
+            if callable(setter):
+                setter(self.motion_enabled)
+
+    def _on_motion_switch(self):
+        self.set_motion_enabled(bool(self.motion_switch.get()))
+
+    def set_motion_enabled(self, enabled, persist=True):
+        self.motion_enabled = bool(enabled) and self._system_motion
+        self.motion.set_enabled(self.motion_enabled)
+        self._apply_component_motion()
+        if self.motion_enabled:
+            self.motion_switch.select()
+        else:
+            self.motion_switch.deselect()
+        if persist:
+            try:
+                self.service.store.write("appearance.json", {"motion": bool(enabled)})
+            except OSError:
+                self.lbl_global_status.configure(text="Đã đổi hiệu ứng; chưa lưu được lựa chọn.", text_color=COLOR_DANGER)
 
     def _render_page_error(self):
         message = " | ".join(message for job, message in self._page_errors.items()
@@ -412,7 +496,7 @@ class MonitorApp(ctk.CTk):
     def _style_theme_segment(self):
         selected = "Sáng" if self.theme == "Light" else "Tối"
         for value, button in self.theme_segment._buttons_dict.items():
-            button.configure(text_color="#FFFFFF" if value == selected else COLOR_TEXT_MAIN)
+            button.configure(text_color=COLOR_BUTTON_TEXT if value == selected else COLOR_TEXT_MAIN)
 
     def _update_sidebar_styles(self):
         is_dark = self.theme == "Dark"
@@ -428,11 +512,11 @@ class MonitorApp(ctk.CTk):
             lbl = btn_dict["label"]
 
             if k == self.current_page_key:
-                f.configure(fg_color=active_bg)
+                self._animate_nav_background(k, active_bg)
                 lbl.configure(text_color=active_fg)
                 ic.update_style(color=active_fg, bg_color=active_bg)
             else:
-                f.configure(fg_color="transparent")
+                self._animate_nav_background(k, surf_bg)
                 lbl.configure(text_color=normal_fg)
                 ic.update_style(color=icon_normal, bg_color=surf_bg)
 
@@ -443,8 +527,7 @@ class MonitorApp(ctk.CTk):
         hover_bg = self._apply_appearance_mode(COLOR_SURFACE_ALT)
         btn = self.nav_buttons.get(key)
         if btn:
-            btn["frame"].configure(fg_color=hover_bg)
-            btn["icon"].update_style(btn["icon"].color, bg_color=hover_bg)
+            self._animate_nav_background(key, hover_bg)
 
     def _on_nav_leave(self, key):
         if key == self.current_page_key:
@@ -453,8 +536,17 @@ class MonitorApp(ctk.CTk):
         normal_bg = self._apply_appearance_mode(COLOR_SURFACE)
         btn = self.nav_buttons.get(key)
         if btn:
-            btn["frame"].configure(fg_color="transparent")
-            btn["icon"].update_style(btn["icon"].color, bg_color=normal_bg)
+            self._animate_nav_background(key, normal_bg)
+
+    def _animate_nav_background(self, key, target):
+        controls = self.nav_buttons[key]
+        start = self._nav_backgrounds.get(key, self._apply_appearance_mode(COLOR_SURFACE))
+        def update(progress):
+            color = blend(start, target, progress)
+            self._nav_backgrounds[key] = color
+            controls["frame"].configure(fg_color=color)
+            controls["icon"].update_style(controls["icon"].color, color)
+        self.motion.animate("nav:" + key, update, duration=0.14)
 
     def _on_page_activated(self, page_key):
         if page_key == "overview":
@@ -490,6 +582,7 @@ class MonitorApp(ctk.CTk):
         self.set_theme(t)
 
     def set_theme(self, mode):
+        self.motion.set_enabled(self.motion_enabled)
         self.theme = "Dark" if str(mode).lower() in ("dark", "tối") else "Light"
         ctk.set_appearance_mode(self.theme)
         saved = save_theme(self.theme)
@@ -965,11 +1058,14 @@ class MonitorApp(ctk.CTk):
             messagebox.showinfo("Đang hoàn tất thao tác", "Hãy chờ thao tác đang chạy hoàn tất rồi đóng ứng dụng.", parent=self)
             return
         self._is_closing = True
+        self.motion.cancel_all()
+        for page in self.pages.values():
+            self._stop_component_motion(page)
 
         self._storage_scan_cancel.set()
         self._temp_scan_cancel.set()
 
-        for tid in (self._poll_id, self._sample_loop_id, self._process_loop_id, self._startup_id):
+        for tid in (self._poll_id, self._sample_loop_id, self._process_loop_id, self._startup_id, self._page_motion_id):
             if tid is not None:
                 try:
                     self.after_cancel(tid)
